@@ -13,6 +13,9 @@ const addonSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true
+  },
+  image: {
+    type: String
   }
 }, { timestamps: true });
 

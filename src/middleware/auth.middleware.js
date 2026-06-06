@@ -33,12 +33,12 @@ export const protect = asyncHandler(async (req, res, next) => {
 
     if (!req.user) {
       res.status(401);
-      throw new Error('User not found');
+      throw new Error('User no longer exists. Please log in again.');
     }
 
     next();
   } catch (error) {
     res.status(401);
-    throw new Error('Not authorized to access this route');
+    throw new Error(error.message === 'User no longer exists. Please log in again.' ? error.message : 'Not authorized to access this route');
   }
 });

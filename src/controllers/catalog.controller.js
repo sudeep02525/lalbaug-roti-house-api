@@ -94,13 +94,13 @@ export const getProduct = asyncHandler(async (req, res) => {
 });
 
 export const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, images, active, categoryId, isBestseller, isDailyCombo } = req.body;
-  const product = await Product.create({ name, description, images, active, categoryId, isBestseller, isDailyCombo });
+  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons } = req.body;
+  const product = await Product.create({ name, description, images, active, categoryId, isBestseller, isDailyCombo, addons });
   return new ApiResponse(res).success(product, 'Product created', 201);
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {
-  const { name, description, images, active, categoryId, isBestseller, isDailyCombo } = req.body;
+  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons } = req.body;
   
   const existingProduct = await Product.findById(req.params.id);
   if (!existingProduct) throw new Error('Product not found');
@@ -120,7 +120,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     });
   }
 
-  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo }, { new: true, runValidators: true });
+  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons }, { new: true, runValidators: true });
   return new ApiResponse(res).success(product, 'Product updated');
 });
 
