@@ -60,7 +60,7 @@ export const createCategory = asyncHandler(async (req, res) => {
 });
 
 export const updateCategory = asyncHandler(async (req, res) => {
-  const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const category = await Category.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after', runValidators: true });
   if (!category) throw new Error('Category not found');
   return new ApiResponse(res).success(category, 'Category updated');
 });
@@ -120,7 +120,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     });
   }
 
-  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons }, { new: true, runValidators: true });
+  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons }, { returnDocument: 'after', runValidators: true });
   return new ApiResponse(res).success(product, 'Product updated');
 });
 
@@ -161,7 +161,7 @@ export const createVariant = asyncHandler(async (req, res) => {
 });
 
 export const updateVariant = asyncHandler(async (req, res) => {
-  const variant = await Variant.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const variant = await Variant.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after', runValidators: true });
   if (!variant) throw new Error('Variant not found');
   return new ApiResponse(res).success(variant, 'Variant updated');
 });
@@ -186,7 +186,7 @@ export const createAddon = asyncHandler(async (req, res) => {
 });
 
 export const updateAddon = asyncHandler(async (req, res) => {
-  const addon = await Addon.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const addon = await Addon.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after', runValidators: true });
   if (!addon) throw new Error('Addon not found');
   return new ApiResponse(res).success(addon, 'Addon updated');
 });

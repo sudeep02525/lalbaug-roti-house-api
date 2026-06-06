@@ -50,7 +50,7 @@ export const createDeliveryBoy = asyncHandler(async (req, res) => {
 // @route   PUT /api/v1/delivery-boys/:id
 // @access  Private/Admin
 export const updateDeliveryBoy = asyncHandler(async (req, res) => {
-  const deliveryBoy = await DeliveryBoy.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const deliveryBoy = await DeliveryBoy.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
   if (!deliveryBoy) throw new Error('Delivery Boy not found');
   return new ApiResponse(res).success(deliveryBoy, 'Delivery boy updated');
 });
