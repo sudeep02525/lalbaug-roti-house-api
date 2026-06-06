@@ -4,6 +4,8 @@ import Variant from '../models/Variant.js';
 import Addon from '../models/Addon.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
+import fs from 'fs';
+import path from 'path';
 
 // ==============================
 // MENU (Formatted for Frontend)
@@ -99,15 +101,55 @@ export const createProduct = asyncHandler(async (req, res) => {
 
 export const updateProduct = asyncHandler(async (req, res) => {
   const { name, description, images, active, categoryId, isBestseller, isDailyCombo } = req.body;
+  
+  const existingProduct = await Product.findById(req.params.id);
+  if (!existingProduct) throw new Error('Product not found');
+
+  // If new images array is provided, check if old images were removed and delete them
+  if (images && existingProduct.images) {
+    const oldImages = existingProduct.images;
+    const removedImages = oldImages.filter(img => !images.includes(img));
+    
+    removedImages.forEach(imageUrl => {
+      if (imageUrl && imageUrl.startsWith('/uploads/products/')) {
+        const filePath = path.join(process.cwd(), 'public', imageUrl);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+    });
+  }
+
   const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo }, { new: true, runValidators: true });
-  if (!product) throw new Error('Product not found');
   return new ApiResponse(res).success(product, 'Product updated');
 });
 
 export const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) throw new Error('Product not found');
+
+  // Clean up associated images from the filesystem
+  if (product.images && product.images.length > 0) {
+    product.images.forEach(imageUrl => {
+      if (imageUrl && imageUrl.startsWith('/uploads/products/')) {
+        const filePath = path.join(process.cwd(), 'public', imageUrl);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+    });
+  }
+
   return new ApiResponse(res).success({}, 'Product deleted');
+});
+
+export const uploadProductImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new Error('Please upload an image file');
+  }
+
+  const imageUrl = `/uploads/products/${req.file.filename}`;
+  return new ApiResponse(res).success({ imageUrl }, 'Image uploaded successfully');
 });
 
 // ==============================

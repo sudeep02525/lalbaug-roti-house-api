@@ -2,10 +2,11 @@ import express from 'express';
 import {
   getMenu,
   getCategories, createCategory, updateCategory, deleteCategory,
-  getProducts, getProduct, createProduct, updateProduct, deleteProduct,
+  getProducts, getProduct, createProduct, updateProduct, deleteProduct, uploadProductImage,
   createVariant, updateVariant, deleteVariant,
   getAddons, createAddon, updateAddon, deleteAddon
 } from '../controllers/catalog.controller.js';
+import uploadImage from '../middleware/imageUpload.middleware.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/role.middleware.js';
 import { Roles } from '../constants/index.js';
@@ -30,6 +31,9 @@ router.route('/categories/:id')
 router.route('/products')
   .get(getProducts)
   .post(adminOnly, createProduct);
+
+router.route('/products/upload')
+  .post(adminOnly, uploadImage.single('image'), uploadProductImage);
 router.route('/products/:id')
   .get(getProduct)
   .put(adminOnly, updateProduct)
