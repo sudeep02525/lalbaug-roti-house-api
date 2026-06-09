@@ -12,6 +12,9 @@ const settingsSchema = new mongoose.Schema({
   restaurantLng: { type: Number, default: 72.8396 },
   minOrderQty: { type: Number, default: 5 },
   maxRadiusKm: { type: Number, default: 20 },
+  isAcceptingOrders: { type: Boolean, default: true },
+  serviceStartTime: { type: String, default: '09:00' },
+  serviceEndTime: { type: String, default: '22:00' },
   deliverySlabs: {
     type: [deliverySlabSchema],
     default: [

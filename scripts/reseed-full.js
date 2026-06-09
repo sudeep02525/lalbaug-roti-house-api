@@ -26,7 +26,7 @@ const importData = async () => {
 
     const categoriesData = [
       { name: 'Roti', desc: 'Freshly made rotis', img: '/images/Plain-Roti.jpeg' },
-      { name: 'Bhakari', desc: 'Healthy Maharashtrian Bhakari', img: '/images/Bajra-Bhakari.png' },
+      { name: 'Bhakari', desc: 'Healthy Traditional Bhakari', img: '/images/Bajra-Bhakari.png' },
       { name: 'Sabji', desc: 'Fresh vegetables', img: '/images/dry-sabji.png' },
       { name: 'Dal', desc: 'Hot & delicious dals', img: '/images/dal.png' },
       { name: 'Rice', desc: 'Premium quality rice', img: '/images/plain-rise.png' },
@@ -106,7 +106,7 @@ const importData = async () => {
     await addProduct('Dosa / Puri', 'Plain Dosa', '/images/plain_dosa_item_1780581128158.png', 50);
     
     // Regular Thali
-    await addProduct('Regular Thali', 'Maharashtrian Thali', '/images/indian_roti_meal.png', 200);
+    await addProduct('Regular Thali', 'Traditional Thali', '/images/indian_roti_meal.png', 200);
 
     console.log('Database FULLY Re-seeded successfully!');
     process.exit();

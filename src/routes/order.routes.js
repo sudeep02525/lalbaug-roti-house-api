@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-  createOrder, verifyPayment, getOrderById, getOrders, updateOrderStatus, assignDeliveryBoy, getMyOrders
+  createOrder, verifyPayment, getOrderById, getOrders, updateOrderStatus, assignDeliveryBoy, getMyOrders, deleteOrder
 } from '../controllers/order.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/role.middleware.js';
@@ -15,6 +15,7 @@ router.post('/', createOrderValidation, validateRequest, createOrder);
 router.post('/verify-payment', verifyPayment);
 router.get('/my-orders', protect, getMyOrders);
 router.get('/:id', getOrderById);
+router.delete('/:id/cancel', protect, deleteOrder);
 
 // Admin Routes
 const adminOnly = [protect, authorize(Roles.ADMIN)];

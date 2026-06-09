@@ -4,6 +4,7 @@ import Variant from '../models/Variant.js';
 import DeliveryBoy from '../models/DeliveryBoy.js';
 import DeliveryService from '../services/delivery.service.js';
 import RazorpayService from '../services/razorpay.service.js';
+import Settings from '../models/Settings.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
 import { OrderStatus, PaymentStatus, DeliverySettings } from '../constants/index.js';
@@ -18,6 +19,27 @@ const RESTAURANT_LON = 72.8311;
 export const createOrder = asyncHandler(async (req, res) => {
   const { items, address, notes, paymentMethod } = req.body;
   const response = new ApiResponse(res);
+
+  // 0. Check Operating Hours
+  const settings = await Settings.findOne();
+  if (settings) {
+    if (settings.isAcceptingOrders === false) {
+      res.status(400);
+      throw new Error('We are currently not accepting orders.');
+    }
+
+    const now = new Date();
+    // Convert to IST
+    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    const hours = istTime.getUTCHours().toString().padStart(2, '0');
+    const minutes = istTime.getUTCMinutes().toString().padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+
+    if (currentTime < settings.serviceStartTime || currentTime > settings.serviceEndTime) {
+      res.status(400);
+      throw new Error(`Store is closed. Operating hours are ${settings.serviceStartTime} to ${settings.serviceEndTime} IST.`);
+    }
+  }
 
   // 1. Calculate Distance
   const distance = DeliveryService.getDistance(
@@ -157,7 +179,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/orders
 // @access  Private/Admin
 export const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 }).populate('assignedDeliveryBoy', 'name');
+  const orders = await Order.find({ orderStatus: { $ne: OrderStatus.PENDING } }).sort({ createdAt: -1 }).populate('assignedDeliveryBoy', 'name');
   return new ApiResponse(res).success(orders);
 });
 
@@ -166,7 +188,7 @@ export const getOrders = asyncHandler(async (req, res) => {
 // @access  Private
 export const getMyOrders = asyncHandler(async (req, res) => {
   // Orders are tied to phone numbers in address
-  const orders = await Order.find({ 'address.phone': req.user.phone }).sort({ createdAt: -1 }).populate('assignedDeliveryBoy', 'name phone');
+  const orders = await Order.find({ 'address.phone': req.user.phone, orderStatus: { $ne: OrderStatus.PENDING } }).sort({ createdAt: -1 }).populate('assignedDeliveryBoy', 'name phone');
   return new ApiResponse(res).success(orders);
 });
 
@@ -201,4 +223,19 @@ export const assignDeliveryBoy = asyncHandler(async (req, res) => {
   await order.save();
 
   return new ApiResponse(res).success(order, 'Delivery boy assigned successfully');
+});
+
+// @desc    Delete/Cancel an unpaid order
+// @route   DELETE /api/v1/orders/:id/cancel
+// @access  Public
+export const deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new Error('Order not found');
+
+  if (order.paymentStatus === PaymentStatus.PAID) {
+    throw new Error('Cannot delete a paid order');
+  }
+
+  await order.deleteOne();
+  return new ApiResponse(res).success(null, 'Order cancelled successfully');
 });

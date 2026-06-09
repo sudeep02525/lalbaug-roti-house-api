@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
 import asyncHandler from '../utils/asyncHandler.js';
 import Admin from '../models/Admin.js';
 import DeliveryBoy from '../models/DeliveryBoy.js';
@@ -13,6 +15,10 @@ export const protect = asyncHandler(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(' ')[1];
   }
+  
+  try {
+    fs.appendFileSync(path.join(process.cwd(), 'auth-debug.log'), `URL: ${req.url}, Token: ${token}\n`);
+  } catch(e){}
 
   if (!token) {
     res.status(401);
@@ -38,7 +44,10 @@ export const protect = asyncHandler(async (req, res, next) => {
 
     next();
   } catch (error) {
+    try {
+      fs.appendFileSync(path.join(process.cwd(), 'auth-debug.log'), `JWT Error: ${error.message}\n`);
+    } catch(e){}
     res.status(401);
-    throw new Error(error.message === 'User no longer exists. Please log in again.' ? error.message : 'Not authorized to access this route');
+    throw new Error(`Auth Error: ${error.message}`);
   }
 });
