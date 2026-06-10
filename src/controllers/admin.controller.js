@@ -149,3 +149,53 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   return new ApiResponse(res).success({}, 'Password reset successful');
 });
+
+// @desc    Update admin profile (name)
+// @route   PUT /api/v1/admin/profile
+// @access  Private/Admin
+export const updateAdminProfile = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+  const admin = await Admin.findById(req.user.id);
+
+  if (!admin) {
+    res.status(404);
+    throw new Error('Admin not found');
+  }
+
+  admin.name = name || admin.name;
+  await admin.save();
+
+  return new ApiResponse(res).success({
+    _id: admin._id,
+    name: admin.name,
+    email: admin.email,
+    role: admin.role,
+  }, 'Profile updated successfully');
+});
+
+// @desc    Update admin password
+// @route   PUT /api/v1/admin/password
+// @access  Private/Admin
+export const updateAdminPassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  
+  // Find admin with password
+  const admin = await Admin.findById(req.user.id).select('+password');
+
+  if (!admin) {
+    res.status(404);
+    throw new Error('Admin not found');
+  }
+
+  // Check current password
+  if (!(await admin.matchPassword(currentPassword))) {
+    res.status(401);
+    throw new Error('Incorrect current password');
+  }
+
+  // Set new password (will be hashed by model pre-save hook)
+  admin.password = newPassword;
+  await admin.save();
+
+  return new ApiResponse(res).success({}, 'Password updated successfully');
+});

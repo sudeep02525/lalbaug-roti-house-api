@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginAdmin, getDashboardStats, forgotPassword, resetPassword } from '../controllers/admin.controller.js';
+import { loginAdmin, getDashboardStats, forgotPassword, resetPassword, updateAdminProfile, updateAdminPassword } from '../controllers/admin.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/role.middleware.js';
 import { validateRequest } from '../middleware/validate.middleware.js';
@@ -13,5 +13,7 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 
 router.get('/dashboard', protect, authorize(Roles.ADMIN), getDashboardStats);
+router.put('/profile', protect, authorize(Roles.ADMIN), updateAdminProfile);
+router.put('/password', protect, authorize(Roles.ADMIN), updateAdminPassword);
 
 export default router;

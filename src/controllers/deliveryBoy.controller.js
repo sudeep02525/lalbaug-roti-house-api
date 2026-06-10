@@ -106,16 +106,17 @@ export const loginDeliveryBoy = asyncHandler(async (req, res) => {
 export const getAssignedOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ 
     assignedDeliveryBoy: req.user._id,
-    orderStatus: { $in: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED] }
+    orderStatus: { $in: [OrderStatus.ASSIGNED, OrderStatus.PICKED_UP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED, OrderStatus.FAILED] }
   }).sort({ createdAt: -1 });
 
   return new ApiResponse(res).success(orders);
 });
 
-// @desc    Mark order as delivered
-// @route   PUT /api/v1/delivery-boys/orders/:id/deliver
+// @desc    Update order status
+// @route   PUT /api/v1/delivery-boys/orders/:id/status
 // @access  Private/DeliveryBoy
-export const markOrderDelivered = asyncHandler(async (req, res) => {
+export const updateOrderStatusDeliveryBoy = asyncHandler(async (req, res) => {
+  const { status } = req.body;
   const order = await Order.findById(req.params.id);
   
   if (!order) throw new Error('Order not found');
@@ -125,10 +126,92 @@ export const markOrderDelivered = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to update this order');
   }
 
-  order.orderStatus = OrderStatus.DELIVERED;
+  const validStatuses = [OrderStatus.ASSIGNED, OrderStatus.PICKED_UP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED, OrderStatus.FAILED];
+  if (!validStatuses.includes(status)) {
+    res.status(400);
+    throw new Error('Invalid status update');
+  }
+
+  order.orderStatus = status;
   await order.save();
 
-  return new ApiResponse(res).success(order, 'Order marked as delivered');
+  return new ApiResponse(res).success(order, `Order marked as ${status}`);
+});
+
+// @desc    Get dashboard stats
+// @route   GET /api/v1/delivery-boys/dashboard-stats
+// @access  Private/DeliveryBoy
+export const getDashboardStats = asyncHandler(async (req, res) => {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const totalAssigned = await Order.countDocuments({ assignedDeliveryBoy: req.user._id });
+  const pending = await Order.countDocuments({ 
+    assignedDeliveryBoy: req.user._id, 
+    orderStatus: { $in: [OrderStatus.ASSIGNED, OrderStatus.PICKED_UP, OrderStatus.OUT_FOR_DELIVERY] } 
+  });
+  const delivered = await Order.countDocuments({ 
+    assignedDeliveryBoy: req.user._id, 
+    orderStatus: OrderStatus.DELIVERED 
+  });
+  const todaysDeliveries = await Order.countDocuments({ 
+    assignedDeliveryBoy: req.user._id, 
+    orderStatus: OrderStatus.DELIVERED,
+    updatedAt: { $gte: startOfToday }
+  });
+
+  return new ApiResponse(res).success({ totalAssigned, pending, delivered, todaysDeliveries });
+});
+
+// @desc    Get earnings
+// @route   GET /api/v1/delivery-boys/earnings
+// @access  Private/DeliveryBoy
+export const getEarnings = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ 
+    assignedDeliveryBoy: req.user._id, 
+    orderStatus: OrderStatus.DELIVERED 
+  });
+
+  const totalEarnings = orders.reduce((acc, curr) => acc + (curr.deliveryCharge || 0), 0);
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const dailyOrders = orders.filter(o => new Date(o.updatedAt) >= startOfToday);
+  const dailyEarnings = dailyOrders.reduce((acc, curr) => acc + (curr.deliveryCharge || 0), 0);
+
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const weeklyOrders = orders.filter(o => new Date(o.updatedAt) >= startOfWeek);
+  const weeklyEarnings = weeklyOrders.reduce((acc, curr) => acc + (curr.deliveryCharge || 0), 0);
+
+  return new ApiResponse(res).success({ totalEarnings, dailyEarnings, weeklyEarnings });
+});
+
+// @desc    Update Profile
+// @route   PUT /api/v1/delivery-boys/profile
+// @access  Private/DeliveryBoy
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { name, vehicleType } = req.body;
+  const deliveryBoy = await DeliveryBoy.findById(req.user._id);
+
+  if (!deliveryBoy) throw new Error('Delivery Boy not found');
+
+  if (name) deliveryBoy.name = name;
+  if (vehicleType) deliveryBoy.vehicleType = vehicleType;
+  
+  await deliveryBoy.save();
+
+  return new ApiResponse(res).success({
+    _id: deliveryBoy._id,
+    name: deliveryBoy.name,
+    email: deliveryBoy.email,
+    phone: deliveryBoy.phone,
+    vehicleType: deliveryBoy.vehicleType,
+    role: deliveryBoy.role
+  }, 'Profile updated successfully');
 });
 
 // @desc    Forgot Password

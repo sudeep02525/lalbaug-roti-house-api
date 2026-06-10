@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   getDeliveryBoys, createDeliveryBoy, updateDeliveryBoy, deleteDeliveryBoy,
-  loginDeliveryBoy, getAssignedOrders, markOrderDelivered, forgotPassword, resetPassword, changePassword
+  loginDeliveryBoy, getAssignedOrders, updateOrderStatusDeliveryBoy, forgotPassword, resetPassword, changePassword, getDashboardStats, getEarnings, updateProfile
 } from '../controllers/deliveryBoy.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/role.middleware.js';
@@ -25,8 +25,12 @@ router.post('/login', loginDeliveryBoy);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.post('/change-password', dboyOnly, changePassword);
+router.put('/profile', dboyOnly, updateProfile);
+
+router.get('/dashboard-stats', dboyOnly, getDashboardStats);
+router.get('/earnings', dboyOnly, getEarnings);
 
 router.get('/orders', dboyOnly, getAssignedOrders);
-router.put('/orders/:id/deliver', dboyOnly, markOrderDelivered);
+router.put('/orders/:id/status', dboyOnly, updateOrderStatusDeliveryBoy);
 
 export default router;

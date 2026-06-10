@@ -219,7 +219,7 @@ export const assignDeliveryBoy = asyncHandler(async (req, res) => {
   if (!order) throw new Error('Order not found');
 
   order.assignedDeliveryBoy = deliveryBoyId;
-  order.orderStatus = OrderStatus.OUT_FOR_DELIVERY;
+  order.orderStatus = OrderStatus.ASSIGNED;
   await order.save();
 
   return new ApiResponse(res).success(order, 'Delivery boy assigned successfully');
