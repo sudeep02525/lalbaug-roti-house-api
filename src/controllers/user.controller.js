@@ -23,222 +23,58 @@ const generateToken = (id, role) => {
 // @desc    Initiate sign‑up (send OTP)
 // @route   POST /api/v1/auth/signup
 // @access  Public
-// export const initiateSignup = asyncHandler(async (req, res) => {
-//   console.log("Body", req.body);
-//   console.log("signup initiated");
-//   const { name, email, password, phone } = req.body;
-
-//   if (!name || !email || !password || !phone) {
-//     res.status(400);
-//     throw new Error("Please add all fields");
-//   }
-
-//   if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-//     res.status(400);
-//     throw new Error("Phone number must be exactly 10 digits");
-//   }
-
-//   // Check if user already exists
-//   const existingUser = await User.findOne({ email });
-//   if (existingUser) {
-//     res.status(400);
-//     throw new Error("User already exists with this email");
-//   }
-
-//   // Generate 6‑digit OTP
-//   const otp = crypto.randomInt(100000, 999999).toString();
-//   const expiresAt = new Date(Date.now() + 60 * 1000); // 60 sec
-
-//   // Upsert OTP document (in case of resend)
-//   await SignupOtp.findOneAndUpdate(
-//     { email },
-//     { otp, expiresAt },
-//     { upsert: true, returnDocument: "after" },
-//   );
-//   console.log('otp', otp);
-//   console.log('expiresAt', expiresAt);
-//   // Send OTP email
-//   await sendEmail({
-//     email,
-//     subject: "Your OTP for Lalbaug Roti House Sign-up",
-//     message: `Your OTP is ${otp}. It will expire in 60 seconds.`,
-//     html: generateOTPEmailTemplate(
-//       "Verify Your Email Address",
-//       `Hi <strong>${name}</strong>,<br><br>Thank you for starting your sign-up process with Lalbaug Roti House. To complete your registration and secure your account, please use the verification code below:`,
-//       otp,
-//       "60 seconds",
-//     ),
-//   });
-
-//   // Temporarily store the user data in the OTP document (optional) – for simplicity we will store it in memory via a JWT later.
-//   // Here we just respond that OTP was sent.
-//   res.status(200).json({ success: true, message: "OTP sent to email" });
-// });
 export const initiateSignup = asyncHandler(async (req, res) => {
-  const requestId = `signup-${Date.now()}`;
+  console.log("Body", req.body);
+  console.log("signup initiated");
+  const { name, email, password, phone } = req.body;
 
-  try {
-    console.log(`\n========== ${requestId} START ==========`);
-
-    console.log(`[${requestId}] Request received`);
-    console.log(`[${requestId}] Method:`, req.method);
-    console.log(`[${requestId}] URL:`, req.originalUrl);
-    console.log(`[${requestId}] Headers:`, req.headers);
-
-    console.log(`[${requestId}] Body:`, JSON.stringify(req.body, null, 2));
-
-    const { name, email, password, phone } = req.body;
-
-    console.log(`[${requestId}] Extracted fields`);
-    console.log(`[${requestId}] name:`, name);
-    console.log(`[${requestId}] email:`, email);
-    console.log(`[${requestId}] password exists:`, !!password);
-    console.log(`[${requestId}] phone:`, phone);
-
-    // ===========================
-    // Validation
-    // ===========================
-    console.log(`[${requestId}] Starting validation`);
-
-    if (!name || !email || !password || !phone) {
-      console.error(`[${requestId}] Validation failed - missing fields`);
-
-      res.status(400);
-      throw new Error("Please add all fields");
-    }
-
-    console.log(`[${requestId}] Required fields validated`);
-
-    if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-      console.error(`[${requestId}] Phone validation failed`);
-
-      res.status(400);
-      throw new Error("Phone number must be exactly 10 digits");
-    }
-
-    console.log(`[${requestId}] Phone validation passed`);
-
-    // ===========================
-    // User lookup
-    // ===========================
-    console.log(`[${requestId}] Checking if user exists`);
-
-    const existingUser = await User.findOne({ email });
-
-    console.log(`[${requestId}] User lookup completed`);
-
-    if (existingUser) {
-      console.error(`[${requestId}] User already exists`);
-
-      res.status(400);
-      throw new Error("User already exists with this email");
-    }
-
-    console.log(`[${requestId}] User does not exist`);
-
-    // ===========================
-    // OTP generation
-    // ===========================
-    console.log(`[${requestId}] Generating OTP`);
-
-    const otp = crypto.randomInt(100000, 999999).toString();
-
-    const expiresAt = new Date(Date.now() + 60 * 1000);
-
-    console.log(`[${requestId}] OTP generated:`, otp);
-
-    console.log(`[${requestId}] OTP expires at:`, expiresAt.toISOString());
-
-    // ===========================
-    // OTP save
-    // ===========================
-    console.log(`[${requestId}] Saving OTP to database`);
-
-    const otpDoc = await SignupOtp.findOneAndUpdate(
-      { email },
-      { otp, expiresAt },
-      {
-        upsert: true,
-        returnDocument: "after",
-      },
-    );
-
-    console.log(`[${requestId}] OTP saved successfully`);
-
-    console.log(`[${requestId}] OTP document:`, otpDoc);
-
-    // ===========================
-    // Email diagnostics
-    // ===========================
-    console.log(`[${requestId}] Email service diagnostics`);
-
-    console.log(`[${requestId}] SMTP_HOST exists:`, !!process.env.SMTP_HOST);
-
-    console.log(`[${requestId}] SMTP_PORT exists:`, !!process.env.SMTP_PORT);
-
-    console.log(`[${requestId}] SMTP_EMAIL exists:`, !!process.env.SMTP_EMAIL);
-
-    console.log(
-      `[${requestId}] SMTP_PASSWORD exists:`,
-      !!process.env.SMTP_PASSWORD,
-    );
-
-    console.log(`[${requestId}] NODE_ENV:`, process.env.NODE_ENV);
-
-    // ===========================
-    // Send email
-    // ===========================
-    console.log(`[${requestId}] Preparing email payload`);
-
-    const emailPayload = {
-      email,
-      subject: "Your OTP for Lalbaug Roti House Sign-up",
-      message: `Your OTP is ${otp}. It will expire in 60 seconds.`,
-      html: generateOTPEmailTemplate(
-        "Verify Your Email Address",
-        `Hi <strong>${name}</strong>,<br><br>Thank you for starting your sign-up process with Lalbaug Roti House. To complete your registration and secure your account, please use the verification code below:`,
-        otp,
-        "60 seconds",
-      ),
-    };
-
-    console.log(`[${requestId}] About to call sendEmail()`);
-
-    const emailStart = Date.now();
-
-    await sendEmail(emailPayload);
-
-    const emailEnd = Date.now();
-
-    console.log(`[${requestId}] sendEmail() completed successfully`);
-
-    console.log(`[${requestId}] Email duration: ${emailEnd - emailStart} ms`);
-
-    // ===========================
-    // Response
-    // ===========================
-    console.log(`[${requestId}] Sending success response`);
-
-    res.status(200).json({
-      success: true,
-      message: "OTP sent to email",
-    });
-
-    console.log(`[${requestId}] Response sent successfully`);
-
-    console.log(`========== ${requestId} END ==========\n`);
-  } catch (error) {
-    console.error(`========== ${requestId} ERROR ==========`);
-
-    console.error(`[${requestId}] Error message:`, error.message);
-
-    console.error(`[${requestId}] Error stack:`, error.stack);
-
-    console.error(`========== ${requestId} ERROR END ==========`);
-
-    throw error;
+  if (!name || !email || !password || !phone) {
+    res.status(400);
+    throw new Error("Please add all fields");
   }
+
+  if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+    res.status(400);
+    throw new Error("Phone number must be exactly 10 digits");
+  }
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    res.status(400);
+    throw new Error("User already exists with this email");
+  }
+
+  // Generate 6‑digit OTP
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const expiresAt = new Date(Date.now() + 60 * 1000); // 60 sec
+
+  // Upsert OTP document (in case of resend)
+  await SignupOtp.findOneAndUpdate(
+    { email },
+    { otp, expiresAt },
+    { upsert: true, returnDocument: "after" },
+  );
+  console.log("otp", otp);
+  console.log("expiresAt", expiresAt);
+  // Send OTP email
+  await sendEmail({
+    email,
+    subject: "Your OTP for Lalbaug Roti House Sign-up",
+    message: `Your OTP is ${otp}. It will expire in 60 seconds.`,
+    html: generateOTPEmailTemplate(
+      "Verify Your Email Address",
+      `Hi <strong>${name}</strong>,<br><br>Thank you for starting your sign-up process with Lalbaug Roti House. To complete your registration and secure your account, please use the verification code below:`,
+      otp,
+      "60 seconds",
+    ),
+  });
+
+  // Temporarily store the user data in the OTP document (optional) – for simplicity we will store it in memory via a JWT later.
+  // Here we just respond that OTP was sent.
+  res.status(200).json({ success: true, message: "OTP sent to email" });
 });
+
 // @desc    Verify OTP and create user
 // @route   POST /api/v1/auth/verify-otp
 // @access  Public
