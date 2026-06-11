@@ -40,38 +40,45 @@ import nodemailer from "nodemailer";
 
 const sendEmail = async (options) => {
   try {
-    console.log("===== sendEmail START =====");
+    console.log("\n===== sendEmail START =====");
 
-    console.log({
-      SMTP_HOST: process.env.SMTP_HOST,
-      SMTP_PORT: process.env.SMTP_PORT,
-      SMTP_USER_EXISTS: !!process.env.SMTP_USER,
-      SMTP_PASS_EXISTS: !!process.env.SMTP_PASS,
+    console.log("SMTP Configuration:", {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      user: process.env.SMTP_USER,
+      hasPassword: !!process.env.SMTP_PASS,
     });
 
+    // Fallback if SMTP isn't configured
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-      console.log("NO SMTP CONFIG FOUND");
+      console.log("NO SMTP CONFIG FOUND. LOGGING EMAIL TO CONSOLE INSTEAD:");
+      console.log("To:", options.email);
+      console.log("Subject:", options.subject);
+      console.log("Message:", options.message);
+      console.log("===== sendEmail END =====\n");
       return;
     }
 
-    console.log("Creating transporter");
+    console.log("Creating transporter...");
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT || 587,
+      port: Number(process.env.SMTP_PORT) || 465,
+
+      // Gmail + 465 requires secure=true
+      secure: Number(process.env.SMTP_PORT) === 465,
+
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
     console.log("Transporter created");
-
-    console.log("Verifying transporter");
-
-    await transporter.verify();
-
-    console.log("Transport verified");
 
     const message = {
       from: `${process.env.FROM_NAME || "Lalbaug Roti House"} <${
@@ -81,21 +88,35 @@ const sendEmail = async (options) => {
       subject: options.subject,
       text: options.message,
       html: options.html,
+      attachments: options.attachments || [],
     };
 
-    console.log("Calling sendMail");
+    console.log("About to send email...");
+    console.log("Recipient:", options.email);
+    console.log("Subject:", options.subject);
+
+    const startTime = Date.now();
 
     const info = await transporter.sendMail(message);
 
-    console.log("sendMail completed");
+    const duration = Date.now() - startTime;
 
+    console.log("Email sent successfully");
     console.log("Message ID:", info.messageId);
+    console.log("Response:", info.response);
+    console.log(`Duration: ${duration}ms`);
 
-    console.log("===== sendEmail END =====");
+    console.log("===== sendEmail END =====\n");
+
+    return info;
   } catch (err) {
-    console.error("===== sendEmail ERROR =====");
-    console.error(err);
-    console.error(err.stack);
+    console.error("\n===== sendEmail ERROR =====");
+    console.error("Message:", err.message);
+    console.error("Code:", err.code);
+    console.error("Command:", err.command);
+    console.error("Stack:", err.stack);
+    console.error("===== sendEmail ERROR END =====\n");
+
     throw err;
   }
 };
