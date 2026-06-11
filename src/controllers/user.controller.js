@@ -55,7 +55,8 @@ export const initiateSignup = asyncHandler(async (req, res) => {
     { otp, expiresAt },
     { upsert: true, returnDocument: "after" },
   );
-
+  console.log('otp', otp);
+  console.log('expiresAt', expiresAt);
   // Send OTP email
   await sendEmail({
     email,
