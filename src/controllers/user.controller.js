@@ -1,16 +1,19 @@
-import asyncHandler from '../utils/asyncHandler.js';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import User from '../models/User.js';
-import SignupOtp from '../models/SignupOtp.js';
-import ApiResponse from '../utils/apiResponse.js';
-import sendEmail from '../utils/sendEmail.js';
-import path from 'path';
-import { generateOTPEmailTemplate, generateWelcomeEmailTemplate } from '../utils/emailTemplates.js';
+import asyncHandler from "../utils/asyncHandler.js";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import User from "../models/User.js";
+import SignupOtp from "../models/SignupOtp.js";
+import ApiResponse from "../utils/apiResponse.js";
+import sendEmail from "../utils/sendEmail.js";
+import path from "path";
+import {
+  generateOTPEmailTemplate,
+  generateWelcomeEmailTemplate,
+} from "../utils/emailTemplates.js";
 // Generate JWT
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
+    expiresIn: "30d",
   });
 };
 
@@ -21,23 +24,25 @@ const generateToken = (id, role) => {
 // @route   POST /api/v1/auth/signup
 // @access  Public
 export const initiateSignup = asyncHandler(async (req, res) => {
+  console.log("Body", req.body);
+  console.log("signup initiated");
   const { name, email, password, phone } = req.body;
 
   if (!name || !email || !password || !phone) {
     res.status(400);
-    throw new Error('Please add all fields');
+    throw new Error("Please add all fields");
   }
 
   if (phone.length !== 10 || !/^\d+$/.test(phone)) {
     res.status(400);
-    throw new Error('Phone number must be exactly 10 digits');
+    throw new Error("Phone number must be exactly 10 digits");
   }
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     res.status(400);
-    throw new Error('User already exists with this email');
+    throw new Error("User already exists with this email");
   }
 
   // Generate 6‑digit OTP
@@ -48,25 +53,25 @@ export const initiateSignup = asyncHandler(async (req, res) => {
   await SignupOtp.findOneAndUpdate(
     { email },
     { otp, expiresAt },
-    { upsert: true, returnDocument: 'after' }
+    { upsert: true, returnDocument: "after" },
   );
 
   // Send OTP email
   await sendEmail({
     email,
-    subject: 'Your OTP for Lalbaug Roti House Sign-up',
+    subject: "Your OTP for Lalbaug Roti House Sign-up",
     message: `Your OTP is ${otp}. It will expire in 60 seconds.`,
     html: generateOTPEmailTemplate(
-      'Verify Your Email Address',
+      "Verify Your Email Address",
       `Hi <strong>${name}</strong>,<br><br>Thank you for starting your sign-up process with Lalbaug Roti House. To complete your registration and secure your account, please use the verification code below:`,
       otp,
-      '60 seconds'
-    )
+      "60 seconds",
+    ),
   });
 
   // Temporarily store the user data in the OTP document (optional) – for simplicity we will store it in memory via a JWT later.
   // Here we just respond that OTP was sent.
-  res.status(200).json({ success: true, message: 'OTP sent to email' });
+  res.status(200).json({ success: true, message: "OTP sent to email" });
 });
 
 // @desc    Verify OTP and create user
@@ -77,19 +82,19 @@ export const verifySignupOtp = asyncHandler(async (req, res) => {
 
   if (!email || !otp || !name || !password || !phone) {
     res.status(400);
-    throw new Error('Missing required fields');
+    throw new Error("Missing required fields");
   }
 
   const otpDoc = await SignupOtp.findOne({ email, otp });
   if (!otpDoc) {
     res.status(400);
-    throw new Error('Invalid OTP');
+    throw new Error("Invalid OTP");
   }
 
   if (otpDoc.expiresAt < new Date()) {
     await SignupOtp.deleteOne({ _id: otpDoc._id });
     res.status(400);
-    throw new Error('OTP has expired');
+    throw new Error("OTP has expired");
   }
 
   // OTP valid – create user
@@ -100,12 +105,12 @@ export const verifySignupOtp = asyncHandler(async (req, res) => {
   try {
     await sendEmail({
       email,
-      subject: 'Welcome to Lalbaug Roti House! 🎉',
+      subject: "Welcome to Lalbaug Roti House! 🎉",
       message: `Hi ${name},\n\nYour account has been successfully created. We are absolutely thrilled to have you with us!\n\nGet ready to experience the authentic taste of fresh, handmade rotis delivered straight to your door. You can now log in, save your addresses, track past orders, and enjoy lightning-fast checkouts.\n\nBon appétit!`,
-      html: generateWelcomeEmailTemplate(name)
+      html: generateWelcomeEmailTemplate(name),
     });
   } catch (emailError) {
-    console.error('Failed to send welcome email:', emailError);
+    console.error("Failed to send welcome email:", emailError);
     // Continue anyway since user is successfully created
   }
 
@@ -119,7 +124,7 @@ export const verifySignupOtp = asyncHandler(async (req, res) => {
       role: user.role,
       token: generateToken(user._id, user.role),
     },
-    message: 'Account created successfully',
+    message: "Account created successfully",
   });
 });
 
@@ -129,7 +134,7 @@ export const verifySignupOtp = asyncHandler(async (req, res) => {
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select("+password");
 
   if (user && (await user.matchPassword(password))) {
     res.json({
@@ -140,12 +145,12 @@ export const loginUser = asyncHandler(async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        token: generateToken(user._id, user.role)
-      }
+        token: generateToken(user._id, user.role),
+      },
     });
   } else {
     res.status(401);
-    throw new Error('Invalid email or password');
+    throw new Error("Invalid email or password");
   }
 });
 
@@ -154,7 +159,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 // @access  Private
 export const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
-  
+
   if (user) {
     res.json({
       success: true,
@@ -163,12 +168,12 @@ export const getMe = asyncHandler(async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 });
 
@@ -179,14 +184,14 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
     res.status(404);
-    throw new Error('No user found with that email');
+    throw new Error("No user found with that email");
   }
 
   // Create 6 digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   // Hash OTP and set to resetPasswordOtp field
-  user.resetPasswordOtp = crypto.createHash('sha256').update(otp).digest('hex');
+  user.resetPasswordOtp = crypto.createHash("sha256").update(otp).digest("hex");
   // Set expire to 10 minutes
   user.resetPasswordOtpExpire = Date.now() + 10 * 60 * 1000;
 
@@ -198,23 +203,23 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   try {
     await sendEmail({
       email: user.email,
-      subject: 'Password Reset OTP',
+      subject: "Password Reset OTP",
       message: `Your Password Reset OTP is: ${otp}\nThis OTP is valid for 10 minutes.`,
       html: generateOTPEmailTemplate(
-        'Reset Your Password',
-        `Hi <strong>${user.name || 'User'}</strong>,<br><br>We received a request to reset your password for your Lalbaug Roti House account. Please use the verification code below to proceed:`,
+        "Reset Your Password",
+        `Hi <strong>${user.name || "User"}</strong>,<br><br>We received a request to reset your password for your Lalbaug Roti House account. Please use the verification code below to proceed:`,
         otp,
-        '10 minutes'
-      )
+        "10 minutes",
+      ),
     });
-    return new ApiResponse(res).success({}, 'OTP sent to email');
+    return new ApiResponse(res).success({}, "OTP sent to email");
   } catch (err) {
     user.resetPasswordOtp = undefined;
     user.resetPasswordOtpExpire = undefined;
     await user.save({ validateBeforeSave: false });
 
     res.status(500);
-    throw new Error('Email could not be sent');
+    throw new Error("Email could not be sent");
   }
 });
 
@@ -224,17 +229,20 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
-  const resetPasswordOtp = crypto.createHash('sha256').update(otp).digest('hex');
+  const resetPasswordOtp = crypto
+    .createHash("sha256")
+    .update(otp)
+    .digest("hex");
 
   const user = await User.findOne({
     email,
     resetPasswordOtp,
-    resetPasswordOtpExpire: { $gt: Date.now() }
+    resetPasswordOtpExpire: { $gt: Date.now() },
   });
 
   if (!user) {
     res.status(400);
-    throw new Error('Invalid or expired OTP');
+    throw new Error("Invalid or expired OTP");
   }
 
   user.password = newPassword;
@@ -243,5 +251,5 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  return new ApiResponse(res).success({}, 'Password reset successful');
+  return new ApiResponse(res).success({}, "Password reset successful");
 });
