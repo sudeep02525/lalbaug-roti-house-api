@@ -6,7 +6,7 @@ import SignupOtp from '../models/SignupOtp.js';
 import ApiResponse from '../utils/apiResponse.js';
 import sendEmail from '../utils/sendEmail.js';
 import path from 'path';
-import { generateOTPEmailTemplate } from '../utils/emailTemplates.js';
+import { generateOTPEmailTemplate, generateWelcomeEmailTemplate } from '../utils/emailTemplates.js';
 // Generate JWT
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
@@ -28,6 +28,11 @@ export const initiateSignup = asyncHandler(async (req, res) => {
     throw new Error('Please add all fields');
   }
 
+  if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+    res.status(400);
+    throw new Error('Phone number must be exactly 10 digits');
+  }
+
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -43,7 +48,7 @@ export const initiateSignup = asyncHandler(async (req, res) => {
   await SignupOtp.findOneAndUpdate(
     { email },
     { otp, expiresAt },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
 
   // Send OTP email
@@ -56,12 +61,7 @@ export const initiateSignup = asyncHandler(async (req, res) => {
       `Hi <strong>${name}</strong>,<br><br>Thank you for starting your sign-up process with Lalbaug Roti House. To complete your registration and secure your account, please use the verification code below:`,
       otp,
       '60 seconds'
-    ),
-    attachments: [{
-      filename: 'logo.jpeg',
-      path: path.join(process.cwd(), 'public', 'logo.jpeg'),
-      cid: 'logo'
-    }]
+    )
   });
 
   // Temporarily store the user data in the OTP document (optional) – for simplicity we will store it in memory via a JWT later.
@@ -95,6 +95,19 @@ export const verifySignupOtp = asyncHandler(async (req, res) => {
   // OTP valid – create user
   const user = await User.create({ name, email, password, phone });
   await SignupOtp.deleteOne({ _id: otpDoc._id });
+
+  // Send Welcome Email
+  try {
+    await sendEmail({
+      email,
+      subject: 'Welcome to Lalbaug Roti House! 🎉',
+      message: `Hi ${name},\n\nYour account has been successfully created. We are absolutely thrilled to have you with us!\n\nGet ready to experience the authentic taste of fresh, handmade rotis delivered straight to your door. You can now log in, save your addresses, track past orders, and enjoy lightning-fast checkouts.\n\nBon appétit!`,
+      html: generateWelcomeEmailTemplate(name)
+    });
+  } catch (emailError) {
+    console.error('Failed to send welcome email:', emailError);
+    // Continue anyway since user is successfully created
+  }
 
   res.status(201).json({
     success: true,
@@ -192,12 +205,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
         `Hi <strong>${user.name || 'User'}</strong>,<br><br>We received a request to reset your password for your Lalbaug Roti House account. Please use the verification code below to proceed:`,
         otp,
         '10 minutes'
-      ),
-      attachments: [{
-        filename: 'logo.jpeg',
-        path: path.join(process.cwd(), 'public', 'logo.jpeg'),
-        cid: 'logo'
-      }]
+      )
     });
     return new ApiResponse(res).success({}, 'OTP sent to email');
   } catch (err) {

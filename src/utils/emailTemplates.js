@@ -3,7 +3,7 @@ export const generateOTPEmailTemplate = (title, message, otp, validFor) => {
     <div style="background-color: #FAF8F5; padding: 40px 20px; width: 100%; box-sizing: border-box;">
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #EAE5D9; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(17,77,60,0.1); background-color: #ffffff;">
         <div style="background-color: #114D3C; padding: 40px 30px; text-align: center; border-bottom: 4px solid #16A34A;">
-          <img src="cid:logo" alt="Lalbaug Roti House Logo" style="height: 80px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #C19B6C;" />
+          <img src="https://lalbaug-roti-house-api.onrender.com/logo.jpeg" alt="Lalbaug Roti House Logo" style="height: 80px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #C19B6C;" />
           <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;">Lalbaug Roti House</h1>
           <p style="color: #C19B6C; margin: 8px 0 0 0; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 3px;">100% Pure Veg</p>
         </div>
@@ -24,6 +24,41 @@ export const generateOTPEmailTemplate = (title, message, otp, validFor) => {
           <p style="color: #73706A; font-size: 13px; margin: 0;">
             &copy; ${new Date().getFullYear()} Lalbaug Roti House. All rights reserved.<br>
             <span style="display: block; margin-top: 8px; font-size: 11px;">If you didn't request this code, you can safely ignore this email.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+export const generateWelcomeEmailTemplate = (name) => {
+  return `
+    <div style="background-color: #FAF8F5; padding: 40px 20px; width: 100%; box-sizing: border-box;">
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #EAE5D9; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(17,77,60,0.1); background-color: #ffffff;">
+        <div style="background-color: #114D3C; padding: 40px 30px; text-align: center; border-bottom: 4px solid #16A34A;">
+          <img src="https://lalbaug-roti-house-api.onrender.com/logo.jpeg" alt="Lalbaug Roti House Logo" style="height: 80px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #C19B6C;" />
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;">Lalbaug Roti House</h1>
+          <p style="color: #C19B6C; margin: 8px 0 0 0; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 3px;">100% Pure Veg</p>
+        </div>
+        <div style="padding: 40px 30px; background-color: #ffffff;">
+          <h2 style="color: #2C3E35; font-size: 22px; margin-top: 0; margin-bottom: 24px; font-weight: 700;">Welcome to Lalbaug Roti House!</h2>
+          <p style="color: #73706A; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+            Hi <strong>${name}</strong>,<br><br>
+            Your account has been successfully created. We are absolutely thrilled to have you with us!
+          </p>
+          <p style="color: #73706A; font-size: 16px; line-height: 1.6; margin-bottom: 35px;">
+            Get ready to experience the authentic taste of fresh, handmade rotis delivered straight to your door. You can now log in, save your addresses, track past orders, and enjoy lightning-fast checkouts.
+          </p>
+          <div style="text-align: center; margin-bottom: 35px;">
+            <a href="https://lalbaug-roti-house-web.vercel.app/menu" style="display: inline-block; background-color: #16A34A; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; padding: 15px 30px; border-radius: 8px; letter-spacing: 1px;">EXPLORE OUR MENU</a>
+          </div>
+          <p style="color: #73706A; font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+            If you have any questions, feel free to contact our support. Bon appétit!
+          </p>
+        </div>
+        <div style="background-color: #FAF8F5; padding: 25px; text-align: center; border-top: 1px solid #D5CDBD;">
+          <p style="color: #73706A; font-size: 13px; margin: 0;">
+            &copy; ${new Date().getFullYear()} Lalbaug Roti House. All rights reserved.
           </p>
         </div>
       </div>

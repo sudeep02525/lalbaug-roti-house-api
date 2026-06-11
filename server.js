@@ -21,4 +21,4 @@ process.on('unhandledRejection', (err, promise) => {
   console.log(`Unhandled Rejection Error: ${err.message}`);
 });
 
-// Triggering restart again
+// Triggering restart again for email fixes
