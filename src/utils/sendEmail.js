@@ -62,10 +62,8 @@ const sendEmail = async (options) => {
     console.log("Creating transporter...");
 
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-
-      // Gmail + 465 requires secure=true
+      host: "smtp.gmail.com",
+      port: 587,
       secure: false,
 
       auth: {
@@ -73,9 +71,13 @@ const sendEmail = async (options) => {
         pass: process.env.SMTP_PASS,
       },
 
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+      tls: {
+        rejectUnauthorized: false,
+      },
+
+      connectionTimeout: 20000,
+      greetingTimeout: 20000,
+      socketTimeout: 20000,
     });
 
     console.log("Transporter created");
