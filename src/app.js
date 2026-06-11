@@ -40,6 +40,15 @@ app.get('/', (req, res) => {
   res.send('Lalbaug Roti House API is running...');
 });
 
+// Health check routes
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP', timestamp: new Date() });
+});
+
+app.get('/api', (req, res) => {
+  res.status(200).json({ status: 'API is running', version: 'v1', timestamp: new Date() });
+});
+
 // Routes will be mounted here
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/delivery-boy', deliveryBoyRoutes);
