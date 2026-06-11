@@ -24,8 +24,6 @@ const generateToken = (id, role) => {
 // @route   POST /api/v1/auth/signup
 // @access  Public
 export const initiateSignup = asyncHandler(async (req, res) => {
-  console.log("Body", req.body);
-  console.log("signup initiated");
   const { name, email, password, phone } = req.body;
 
   if (!name || !email || !password || !phone) {
@@ -55,8 +53,6 @@ export const initiateSignup = asyncHandler(async (req, res) => {
     { otp, expiresAt },
     { upsert: true, returnDocument: "after" },
   );
-  console.log("otp", otp);
-  console.log("expiresAt", expiresAt);
   // Send OTP email
   await sendEmail({
     email,
