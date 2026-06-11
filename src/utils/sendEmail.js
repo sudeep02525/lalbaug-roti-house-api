@@ -12,6 +12,38 @@ const sendEmail = async (options) => {
     return;
   }
 
+  // --- VERCEL PROXY BYPASS FOR RENDER ---
+  // If we are in production, Render blocks outbound SMTP (port 587).
+  // We proxy the email request through our Vercel frontend, which allows SMTP.
+  if (process.env.NODE_ENV === "production") {
+    try {
+      const response = await fetch("https://lalbaug-roti-house-web.vercel.app/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: "Lalbaug-Roti-House-Email-Bypass-Secret-2026",
+          options: {
+            email: options.email,
+            subject: options.subject,
+            message: options.message,
+            html: options.html,
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Proxy responded with error");
+      }
+      console.log("Message sent via Vercel Proxy:", data.messageId);
+      return;
+    } catch (err) {
+      console.error("Vercel Proxy Email Failed:", err.message);
+      throw new Error("Failed to send email via Vercel Proxy. " + err.message);
+    }
+  }
+
+  // --- LOCALHOST DIRECT SMTP ---
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT || 587,
