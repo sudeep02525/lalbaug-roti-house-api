@@ -19,6 +19,11 @@ const sendEmail = async (options) => {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    // Force IPv4 and add timeouts for Render compatibility
+    family: 4,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
 
   const message = {
