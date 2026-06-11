@@ -14,9 +14,9 @@ const sendEmail = async (options) => {
   }
 
   // --- VERCEL PROXY BYPASS FOR RENDER ---
-  // If we are in production, Render blocks outbound SMTP (port 587).
+  // If we are on Render, Render blocks outbound SMTP (port 587).
   // We proxy the email request through our Vercel frontend, which allows SMTP.
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.RENDER === "true" || process.env.NODE_ENV === "production") {
     try {
       const response = await axios.post("https://lalbaug-roti-house-web.vercel.app/api/send-email", {
         secret: "Lalbaug-Roti-House-Email-Bypass-Secret-2026",
