@@ -1,4 +1,4 @@
-import axios from "axios";
+import { Resend } from "resend";
 
 const sendEmail = async (options) => {
   // If RESEND_API_KEY is missing, fallback to console logging for local testing
@@ -12,28 +12,26 @@ const sendEmail = async (options) => {
     return;
   }
 
-  try {
-    const response = await axios.post(
-      "https://api.resend.com/emails",
-      {
-        from: `${process.env.FROM_NAME || "Lalbaug Roti House"} <${process.env.FROM_EMAIL || "onboarding@resend.dev"}>`,
-        to: options.email,
-        subject: options.subject,
-        text: options.message,
-        html: options.html, // Optional HTML message
-      },
-      {
-        headers: {
-          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-    console.log("Message sent via Resend: %s", response.data.id);
-  } catch (error) {
-    console.error("Resend API Email Failed:", error.response?.data || error.message);
-    throw new Error("Failed to send email via Resend. " + (error.response?.data?.message || error.message));
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `${process.env.FROM_NAME || "Lalbaug Roti House"} <${process.env.FROM_EMAIL || "onboarding@resend.dev"}>`,
+      to: options.email,
+      subject: options.subject,
+      text: options.message,
+      html: options.html, // Optional HTML message
+    });
+
+    if (error) {
+      console.error("Resend SDK Error:", error);
+      throw new Error(error.message);
+    }
+
+    console.log("Message sent via Resend SDK: %s", data.id);
+  } catch (err) {
+    console.error("Resend SDK Email Failed:", err.message);
+    throw new Error("Failed to send email via Resend SDK. " + err.message);
   }
 };
 
