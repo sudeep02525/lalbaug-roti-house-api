@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import axios from "axios";
 
 const sendEmail = async (options) => {
   // If SMTP variables are missing, fallback to console logging for local testing
@@ -17,25 +18,17 @@ const sendEmail = async (options) => {
   // We proxy the email request through our Vercel frontend, which allows SMTP.
   if (process.env.NODE_ENV === "production") {
     try {
-      const response = await fetch("https://lalbaug-roti-house-web.vercel.app/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          secret: "Lalbaug-Roti-House-Email-Bypass-Secret-2026",
-          options: {
-            email: options.email,
-            subject: options.subject,
-            message: options.message,
-            html: options.html,
-          }
-        })
+      const response = await axios.post("https://lalbaug-roti-house-web.vercel.app/api/send-email", {
+        secret: "Lalbaug-Roti-House-Email-Bypass-Secret-2026",
+        options: {
+          email: options.email,
+          subject: options.subject,
+          message: options.message,
+          html: options.html,
+        }
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Proxy responded with error");
-      }
-      console.log("Message sent via Vercel Proxy:", data.messageId);
+      console.log("Message sent via Vercel Proxy:", response.data.messageId);
       return;
     } catch (err) {
       console.error("Vercel Proxy Email Failed:", err.message);
