@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import asyncHandler from '../utils/asyncHandler.js';
 import Admin from '../models/Admin.js';
+import CmsAdmin from '../models/CmsAdmin.js';
 import DeliveryBoy from '../models/DeliveryBoy.js';
 import User from '../models/User.js';
 
@@ -31,6 +32,8 @@ export const protect = asyncHandler(async (req, res, next) => {
     // Check which model the user belongs to based on the role stored in token
     if (decoded.role === 'ADMIN') {
       req.user = await Admin.findById(decoded.id);
+    } else if (decoded.role === 'CMS_ADMIN') {
+      req.user = await CmsAdmin.findById(decoded.id);
     } else if (decoded.role === 'DELIVERY_BOY') {
       req.user = await DeliveryBoy.findById(decoded.id);
     } else if (decoded.role === 'USER') {

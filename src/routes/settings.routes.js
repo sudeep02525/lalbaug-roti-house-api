@@ -7,6 +7,6 @@ import { Roles } from '../constants/index.js';
 const router = express.Router();
 
 router.get('/', getSettings);
-router.put('/', protect, authorize(Roles.ADMIN), updateSettings);
+router.put('/', protect, authorize(Roles.ADMIN, Roles.CMS_ADMIN), updateSettings);
 
 export default router;

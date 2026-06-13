@@ -132,6 +132,18 @@ export const updateOrderStatusDeliveryBoy = asyncHandler(async (req, res) => {
     throw new Error('Invalid status update');
   }
 
+  // OTP Validation for Delivery
+  if (status === OrderStatus.DELIVERED) {
+    const { otp } = req.body;
+    if (!order.deliveryOtp) {
+      // For older orders that might not have an OTP generated
+      console.warn(`Order ${order._id} does not have a deliveryOtp set.`);
+    } else if (!otp || otp.trim() !== order.deliveryOtp) {
+      res.status(400);
+      throw new Error('Invalid Delivery OTP. Please ask the customer for the correct 4-digit code.');
+    }
+  }
+
   order.orderStatus = status;
   await order.save();
 

@@ -13,8 +13,8 @@ import { Roles } from '../constants/index.js';
 
 const router = express.Router();
 
-// Admin only middleware for mutations
-const adminOnly = [protect, authorize(Roles.ADMIN)];
+// Admin and CMS only middleware for mutations
+const adminOnly = [protect, authorize(Roles.ADMIN, Roles.CMS_ADMIN)];
 
 // Menu Endpoint (Formatted for Frontend)
 router.route('/menu').get(getMenu);

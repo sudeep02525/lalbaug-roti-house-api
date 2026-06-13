@@ -7,6 +7,7 @@ import RazorpayService from '../services/razorpay.service.js';
 import Settings from '../models/Settings.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
+import { getIO } from '../socket.js';
 import { OrderStatus, PaymentStatus, DeliverySettings } from '../constants/index.js';
 
 // Assume the restaurant's coordinates are fixed for this example
@@ -98,6 +99,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   // 3. Create Order in DB
   const orderNumber = 'LRH' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+  const deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
   
   const order = await Order.create({
     orderNumber,
@@ -107,7 +109,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     totalAmount,
     deliveryDistance: distance,
     address,
-    notes
+    notes,
+    deliveryOtp
   });
 
   // 4. Create Razorpay Order if online
@@ -131,6 +134,13 @@ export const createOrder = asyncHandler(async (req, res) => {
   } else {
     order.orderStatus = OrderStatus.CONFIRMED;
     await order.save();
+    
+    // Emit notification for COD order
+    try {
+      getIO().emit('new_order', { orderId: order._id, orderNumber: order.orderNumber, amount: order.totalAmount, type: 'COD' });
+    } catch (err) {
+      console.log('Socket.io error:', err.message);
+    }
   }
 
   return response.success({
@@ -162,6 +172,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   order.razorpayPaymentId = razorpay_payment_id;
   order.orderStatus = OrderStatus.CONFIRMED;
   await order.save();
+
+  // Emit notification for Paid order
+  try {
+    getIO().emit('new_order', { orderId: order._id, orderNumber: order.orderNumber, amount: order.totalAmount, type: 'PAID' });
+  } catch (err) {
+    console.log('Socket.io error:', err.message);
+  }
 
   return response.success(order, 'Payment verified successfully');
 });
@@ -221,6 +238,19 @@ export const assignDeliveryBoy = asyncHandler(async (req, res) => {
   order.assignedDeliveryBoy = deliveryBoyId;
   order.orderStatus = OrderStatus.ASSIGNED;
   await order.save();
+
+  // Emit assignment to delivery boys
+  try {
+    getIO().emit('new_assignment', { 
+      deliveryBoyId: deliveryBoy._id,
+      orderId: order._id, 
+      orderNumber: order.orderNumber,
+      amount: order.totalAmount,
+      type: order.type || 'DELIVERY'
+    });
+  } catch (err) {
+    console.log('Socket.io error:', err.message);
+  }
 
   return new ApiResponse(res).success(order, 'Delivery boy assigned successfully');
 });

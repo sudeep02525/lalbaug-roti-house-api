@@ -11,7 +11,7 @@ const router = express.Router();
 
 const adminOnly = [protect, authorize(Roles.ADMIN)];
 const dboyOnly = [protect, authorize(Roles.DELIVERY_BOY)];
-
+  
 // Admin Controls
 router.route('/')
   .get(adminOnly, getDeliveryBoys)

@@ -78,7 +78,8 @@ const orderSchema = new mongoose.Schema({
   address: addressSchema,
   notes: String,
   razorpayOrderId: String,
-  razorpayPaymentId: String
+  razorpayPaymentId: String,
+  deliveryOtp: String
 }, { timestamps: true });
 
 export default mongoose.model('Order', orderSchema);

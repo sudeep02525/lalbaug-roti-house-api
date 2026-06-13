@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import { Roles } from '../constants/index.js';
 
-const adminSchema = new mongoose.Schema({
+const cmsAdminSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Please add a name']
@@ -24,15 +24,15 @@ const adminSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: Roles.ADMIN,
-    enum: [Roles.ADMIN, Roles.CMS_ADMIN]
+    default: Roles.CMS_ADMIN,
+    enum: [Roles.CMS_ADMIN]
   },
   resetPasswordOtp: String,
   resetPasswordOtpExpire: Date
 }, { timestamps: true });
 
 // Encrypt password using bcrypt
-adminSchema.pre('save', async function() {
+cmsAdminSchema.pre('save', async function() {
   if (!this.isModified('password')) {
     return;
   }
@@ -42,8 +42,8 @@ adminSchema.pre('save', async function() {
 });
 
 // Match user entered password to hashed password in database
-adminSchema.methods.matchPassword = async function(enteredPassword) {
+cmsAdminSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default mongoose.model('Admin', adminSchema);
+export default mongoose.model('CmsAdmin', cmsAdminSchema);

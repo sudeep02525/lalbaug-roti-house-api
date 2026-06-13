@@ -8,7 +8,10 @@ import connectDB from './src/config/db.js';
 // Connect to MongoDB
 connectDB();
 
+import { initSocket } from './src/socket.js';
+
 const server = http.createServer(app);
+initSocket(server);
 
 const PORT = process.env.PORT || 5000;
 

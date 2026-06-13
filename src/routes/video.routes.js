@@ -7,7 +7,7 @@ import upload from '../middleware/upload.middleware.js';
 
 const router = express.Router();
 
-const adminOnly = [protect, authorize(Roles.ADMIN)];
+const adminOnly = [protect, authorize(Roles.ADMIN, Roles.CMS_ADMIN)];
 
 router
   .route('/')

@@ -13,6 +13,7 @@ import settingsRoutes from './routes/settings.routes.js';
 import videoRoutes from './routes/video.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import userRoutes from './routes/user.routes.js';
+import cmsRoutes from './routes/cms.routes.js';
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use('/api/v1/settings', settingsRoutes);
 app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/cms', cmsRoutes);
 
 // Error Handling
 app.use(notFound);
