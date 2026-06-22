@@ -14,6 +14,7 @@ import videoRoutes from './routes/video.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import userRoutes from './routes/user.routes.js';
 import cmsRoutes from './routes/cms.routes.js';
+import pushRoutes from './routes/push.routes.js';
 
 const app = express();
 
@@ -27,7 +28,11 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -60,6 +65,7 @@ app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/cms', cmsRoutes);
+app.use('/api/v1/push', pushRoutes);
 
 // Error Handling
 app.use(notFound);

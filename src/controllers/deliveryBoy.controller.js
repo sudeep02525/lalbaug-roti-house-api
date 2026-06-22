@@ -104,10 +104,25 @@ export const loginDeliveryBoy = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/delivery-boys/orders
 // @access  Private/DeliveryBoy
 export const getAssignedOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ 
+  let orders = await Order.find({ 
     assignedDeliveryBoy: req.user._id,
     orderStatus: { $in: [OrderStatus.ASSIGNED, OrderStatus.PICKED_UP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED, OrderStatus.FAILED] }
-  }).sort({ createdAt: -1 });
+  }).sort({ createdAt: -1 }).lean();
+
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  orders = orders.map(order => {
+    // Privacy: Mask sensitive data for orders older than 24 hours
+    if (new Date(order.createdAt) < twentyFourHoursAgo) {
+      if (order.address) {
+        order.address.phone = '+91-XXXXX-XXXXX';
+        order.address.addressLine1 = 'Hidden for privacy';
+        order.address.landmark = 'Hidden';
+        // Customer name is intentionally left visible as requested
+      }
+    }
+    return order;
+  });
 
   return new ApiResponse(res).success(orders);
 });

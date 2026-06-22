@@ -30,6 +30,16 @@ class RazorpayService {
       
     return generatedSignature === signature;
   }
+  static verifyWebhookSignature(rawBody, signature, secret) {
+    if (!secret || !rawBody) return false;
+
+    const generatedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(rawBody)
+      .digest('hex');
+      
+    return generatedSignature === signature;
+  }
 }
 
 export default RazorpayService;

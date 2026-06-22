@@ -6,6 +6,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
 import fs from 'fs';
 import path from 'path';
+import { deleteFromCloudinary } from '../config/cloudinary.js';
 
 // ==============================
 // MENU (Formatted for Frontend)
@@ -110,14 +111,11 @@ export const updateProduct = asyncHandler(async (req, res) => {
     const oldImages = existingProduct.images;
     const removedImages = oldImages.filter(img => !images.includes(img));
     
-    removedImages.forEach(imageUrl => {
-      if (imageUrl && imageUrl.startsWith('/uploads/products/')) {
-        const filePath = path.join(process.cwd(), 'public', imageUrl);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+    for (const imageUrl of removedImages) {
+      if (imageUrl && imageUrl.includes('cloudinary.com')) {
+        await deleteFromCloudinary(imageUrl, 'image');
       }
-    });
+    }
   }
 
   const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons }, { returnDocument: 'after', runValidators: true });
@@ -128,16 +126,13 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) throw new Error('Product not found');
 
-  // Clean up associated images from the filesystem
+  // Clean up associated images from Cloudinary
   if (product.images && product.images.length > 0) {
-    product.images.forEach(imageUrl => {
-      if (imageUrl && imageUrl.startsWith('/uploads/products/')) {
-        const filePath = path.join(process.cwd(), 'public', imageUrl);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+    for (const imageUrl of product.images) {
+      if (imageUrl && imageUrl.includes('cloudinary.com')) {
+        await deleteFromCloudinary(imageUrl, 'image');
       }
-    });
+    }
   }
 
   return new ApiResponse(res).success({}, 'Product deleted');
@@ -148,8 +143,19 @@ export const uploadProductImage = asyncHandler(async (req, res) => {
     throw new Error('Please upload an image file');
   }
 
-  const imageUrl = `/uploads/products/${req.file.filename}`;
-  return new ApiResponse(res).success({ imageUrl }, 'Image uploaded successfully');
+  // Cloudinary returns the full URL in req.file.path
+  const imageUrl = req.file.path;
+  return new ApiResponse(res).success({ imageUrl }, 'Product image uploaded successfully');
+});
+
+export const uploadBannerImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new Error('Please upload an image file');
+  }
+
+  // Cloudinary returns the full URL in req.file.path
+  const imageUrl = req.file.path;
+  return new ApiResponse(res).success({ imageUrl }, 'Banner image uploaded successfully');
 });
 
 // ==============================
@@ -186,13 +192,27 @@ export const createAddon = asyncHandler(async (req, res) => {
 });
 
 export const updateAddon = asyncHandler(async (req, res) => {
+  const existingAddon = await Addon.findById(req.params.id);
+  if (!existingAddon) throw new Error('Addon not found');
+
+  // Delete old image from Cloudinary if it was changed or removed
+  if (req.body.image !== undefined && existingAddon.image && existingAddon.image !== req.body.image) {
+    if (existingAddon.image.includes('cloudinary.com')) {
+      await deleteFromCloudinary(existingAddon.image, 'image');
+    }
+  }
+
   const addon = await Addon.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after', runValidators: true });
-  if (!addon) throw new Error('Addon not found');
   return new ApiResponse(res).success(addon, 'Addon updated');
 });
 
 export const deleteAddon = asyncHandler(async (req, res) => {
   const addon = await Addon.findByIdAndDelete(req.params.id);
   if (!addon) throw new Error('Addon not found');
+
+  if (addon.image && addon.image.includes('cloudinary.com')) {
+    await deleteFromCloudinary(addon.image, 'image');
+  }
+
   return new ApiResponse(res).success({}, 'Addon deleted');
 });

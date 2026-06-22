@@ -9,6 +9,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
 import { getIO } from '../socket.js';
 import { OrderStatus, PaymentStatus, DeliverySettings } from '../constants/index.js';
+import PushService from '../services/push.service.js';
 
 // Assume the restaurant's coordinates are fixed for this example
 const RESTAURANT_LAT = 18.9690;
@@ -138,6 +139,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     // Emit notification for COD order
     try {
       getIO().emit('new_order', { orderId: order._id, orderNumber: order.orderNumber, amount: order.totalAmount, type: 'COD' });
+      PushService.notifyAllAdmins('New Order Received', `Order #${order.orderNumber} for ₹${order.totalAmount} (COD)`);
     } catch (err) {
       console.log('Socket.io error:', err.message);
     }
@@ -176,11 +178,79 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   // Emit notification for Paid order
   try {
     getIO().emit('new_order', { orderId: order._id, orderNumber: order.orderNumber, amount: order.totalAmount, type: 'PAID' });
+    PushService.notifyAllAdmins('New Order Received', `Order #${order.orderNumber} for ₹${order.totalAmount} (PAID)`);
   } catch (err) {
     console.log('Socket.io error:', err.message);
   }
 
   return response.success(order, 'Payment verified successfully');
+});
+
+// @desc    Razorpay Webhook Endpoint
+// @route   POST /api/v1/orders/webhook
+// @access  Public
+export const razorpayWebhook = asyncHandler(async (req, res) => {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const signature = req.headers['x-razorpay-signature'];
+  const rawBody = req.rawBody; // Captured via express.json verify
+  
+  if (!secret || !signature || !rawBody) {
+    return res.status(400).send('Webhook Error: Missing signature, raw body or secret');
+  }
+
+  const isValid = RazorpayService.verifyWebhookSignature(rawBody, signature, secret);
+  
+  if (!isValid) {
+    return res.status(400).send('Webhook Error: Invalid signature');
+  }
+
+  const event = req.body.event;
+  const payload = req.body.payload;
+
+  if (event === 'order.paid') {
+    const payment = payload.payment.entity;
+    const razorpayOrderId = payment.order_id;
+    const razorpayPaymentId = payment.id;
+
+    const order = await Order.findOne({ razorpayOrderId: razorpayOrderId });
+    
+    if (order && order.paymentStatus !== PaymentStatus.PAID) {
+      order.paymentStatus = PaymentStatus.PAID;
+      order.razorpayPaymentId = razorpayPaymentId;
+      order.orderStatus = OrderStatus.CONFIRMED;
+      await order.save();
+
+      try {
+        getIO().emit('new_order', { orderId: order._id, orderNumber: order.orderNumber, amount: order.totalAmount, type: 'PAID_WEBHOOK' });
+        PushService.notifyAllAdmins('New Order Received via Webhook', `Order #${order.orderNumber} for ₹${order.totalAmount} (PAID)`);
+      } catch (err) {
+        console.log('Socket.io error:', err.message);
+      }
+    }
+  } else if (event === 'payment.failed') {
+    const payment = payload.payment.entity;
+    const razorpayOrderId = payment.order_id;
+
+    const order = await Order.findOne({ razorpayOrderId: razorpayOrderId });
+    if (order && order.paymentStatus !== PaymentStatus.FAILED && order.paymentStatus !== PaymentStatus.PAID) {
+      order.paymentStatus = PaymentStatus.FAILED;
+      order.orderStatus = OrderStatus.FAILED;
+      await order.save();
+    }
+  } else if (event === 'refund.processed') {
+    const refund = payload.refund.entity;
+    const paymentId = refund.payment_id;
+
+    const order = await Order.findOne({ razorpayPaymentId: paymentId });
+    if (order && order.paymentStatus !== PaymentStatus.REFUNDED) {
+      order.paymentStatus = PaymentStatus.REFUNDED;
+      order.orderStatus = OrderStatus.CANCELLED;
+      await order.save();
+    }
+  }
+
+  // Acknowledge the webhook
+  res.status(200).json({ status: 'ok' });
 });
 
 // @desc    Get order by ID
@@ -248,6 +318,7 @@ export const assignDeliveryBoy = asyncHandler(async (req, res) => {
       amount: order.totalAmount,
       type: order.type || 'DELIVERY'
     });
+    PushService.notifyDeliveryBoy(deliveryBoy._id, 'New Order Assigned', `Order #${order.orderNumber} for ₹${order.totalAmount} has been assigned to you.`);
   } catch (err) {
     console.log('Socket.io error:', err.message);
   }

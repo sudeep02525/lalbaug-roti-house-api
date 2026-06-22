@@ -2,11 +2,11 @@ import express from 'express';
 import {
   getMenu,
   getCategories, createCategory, updateCategory, deleteCategory,
-  getProducts, getProduct, createProduct, updateProduct, deleteProduct, uploadProductImage,
+  getProducts, getProduct, createProduct, updateProduct, deleteProduct, uploadProductImage, uploadBannerImage,
   createVariant, updateVariant, deleteVariant,
   getAddons, createAddon, updateAddon, deleteAddon
 } from '../controllers/catalog.controller.js';
-import uploadImage from '../middleware/imageUpload.middleware.js';
+import { uploadProductImageMiddleware, uploadBannerImageMiddleware } from '../middleware/imageUpload.middleware.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authorize } from '../middleware/role.middleware.js';
 import { Roles } from '../constants/index.js';
@@ -33,7 +33,10 @@ router.route('/products')
   .post(adminOnly, createProduct);
 
 router.route('/products/upload')
-  .post(adminOnly, uploadImage.single('image'), uploadProductImage);
+  .post(adminOnly, uploadProductImageMiddleware.single('image'), uploadProductImage);
+
+router.route('/banners/upload')
+  .post(adminOnly, uploadBannerImageMiddleware.single('image'), uploadBannerImage);
 router.route('/products/:id')
   .get(getProduct)
   .put(adminOnly, updateProduct)

@@ -1,6 +1,7 @@
 import Video from '../models/Video.js';
 import fs from 'fs';
 import path from 'path';
+import { deleteFromCloudinary } from '../config/cloudinary.js';
 
 // @desc    Upload a new video
 // @route   POST /api/v1/videos
@@ -14,8 +15,8 @@ export const uploadVideo = async (req, res, next) => {
     const { title } = req.body;
     
     // Construct the URL to access the video
-    // In production, this would be your actual domain
-    const url = `/uploads/videos/${req.file.filename}`;
+    // Cloudinary returns the full URL in req.file.path
+    const url = req.file.path;
 
     const video = await Video.create({
       title: title || 'Untitled Video',
@@ -58,10 +59,9 @@ export const deleteVideo = async (req, res, next) => {
       return res.status(404).json({ message: 'Video not found' });
     }
 
-    // Delete file from filesystem
-    const filePath = path.join(process.cwd(), 'public', video.url);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Delete file from Cloudinary
+    if (video.url && video.url.includes('cloudinary.com')) {
+      await deleteFromCloudinary(video.url, 'video');
     }
 
     await video.deleteOne();
