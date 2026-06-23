@@ -2,7 +2,6 @@ import express from "express";
 import {
   createOrder,
   verifyPayment,
-  razorpayWebhook,
   getOrderById,
   getOrders,
   updateOrderStatus,
@@ -21,7 +20,6 @@ const router = express.Router();
 // Public / Guest Routes
 router.post("/", createOrderValidation, validateRequest, createOrder);
 router.post("/verify-payment", verifyPayment);
-router.post("/webhook", razorpayWebhook);
 router.get("/my-orders", protect, getMyOrders);
 router.get("/:id", getOrderById);
 router.delete("/:id/cancel", protect, deleteOrder);
