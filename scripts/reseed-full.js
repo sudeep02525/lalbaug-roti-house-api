@@ -46,7 +46,7 @@ const importData = async () => {
       const prod = await Product.create({
         categoryId: catsMap[catName]._id,
         name,
-        description: `Authentic ${name}`,
+        description: `Genuine ${name}`,
         images: [img],
         active: true
       });

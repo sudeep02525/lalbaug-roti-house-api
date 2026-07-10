@@ -103,7 +103,7 @@ export const verifySignupOtp = asyncHandler(async (req, res) => {
     await sendEmail({
       email,
       subject: "Welcome to Lalbaug Roti House! 🎉",
-      message: `Hi ${name},\n\nYour account has been successfully created. We are absolutely thrilled to have you with us!\n\nGet ready to experience the authentic taste of fresh, handmade rotis delivered straight to your door. You can now log in, save your addresses, track past orders, and enjoy lightning-fast checkouts.\n\nBon appétit!`,
+      message: `Hi ${name},\n\nYour account has been successfully created. We are absolutely thrilled to have you with us!\n\nGet ready to experience the genuine taste of fresh, handmade rotis delivered straight to your door. You can now log in, save your addresses, track past orders, and enjoy lightning-fast checkouts.\n\nBon appétit!`,
       html: generateWelcomeEmailTemplate(name),
     });
   } catch (emailError) {

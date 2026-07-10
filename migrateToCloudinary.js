@@ -98,9 +98,24 @@ const migrateSettings = async () => {
   }
   settings.craftImages = newCraftImages;
 
+  if (settings.mumbaiSpecials && settings.mumbaiSpecials.length > 0) {
+    const newMumbaiSpecials = [];
+    for (const special of settings.mumbaiSpecials) {
+      if (special.image && (special.image.startsWith('/uploads/') || special.image.startsWith('/images/'))) {
+        const url = await uploadToCloudinary(special.image, 'lalbaug-roti-house/products');
+        if (url) {
+          special.image = url;
+          updated = true;
+        }
+      }
+      newMumbaiSpecials.push(special);
+    }
+    settings.mumbaiSpecials = newMumbaiSpecials;
+  }
+
   if (updated) {
     await settings.save();
-    console.log('Updated Settings banners');
+    console.log('Updated Settings banners and specials');
   }
 };
 

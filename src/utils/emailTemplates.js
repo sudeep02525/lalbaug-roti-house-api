@@ -47,7 +47,7 @@ export const generateWelcomeEmailTemplate = (name) => {
             Your account has been successfully created. We are absolutely thrilled to have you with us!
           </p>
           <p style="color: #73706A; font-size: 16px; line-height: 1.6; margin-bottom: 35px;">
-            Get ready to experience the authentic taste of fresh, handmade rotis delivered straight to your door. You can now log in, save your addresses, track past orders, and enjoy lightning-fast checkouts.
+            Get ready to experience the genuine taste of fresh, handmade rotis delivered straight to your door. You can now log in, save your addresses, track past orders, and enjoy lightning-fast checkouts.
           </p>
           <div style="text-align: center; margin-bottom: 35px;">
             <a href="https://lalbaug-roti-house-web.vercel.app/menu" style="display: inline-block; background-color: #16A34A; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; padding: 15px 30px; border-radius: 8px; letter-spacing: 1px;">EXPLORE OUR MENU</a>

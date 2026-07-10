@@ -36,7 +36,7 @@ const importData = async () => {
     // Create Category
     const category = await Category.create({
       name: 'Indian Breads',
-      description: 'Authentic Indian Rotis and Naans'
+      description: 'Traditional Indian Rotis and Naans'
     });
 
     // Create Product

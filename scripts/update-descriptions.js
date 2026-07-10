@@ -21,7 +21,7 @@ const updateDescriptions = async () => {
       
       if (product.description) {
         let newDesc = product.description;
-        newDesc = newDesc.replace(/homely/gi, 'authentic');
+        newDesc = newDesc.replace(/homely/gi, 'genuine');
         newDesc = newDesc.replace(/homemade/gi, '');
         newDesc = newDesc.replace(/home-made/gi, '');
         newDesc = newDesc.replace(/Maharashtrian/gi, 'Traditional');
@@ -47,7 +47,7 @@ const updateDescriptions = async () => {
       let updated = false;
       if (category.description) {
         let newDesc = category.description;
-        newDesc = newDesc.replace(/homely/gi, 'authentic');
+        newDesc = newDesc.replace(/homely/gi, 'genuine');
         newDesc = newDesc.replace(/homemade/gi, '');
         newDesc = newDesc.replace(/home-made/gi, '');
         newDesc = newDesc.replace(/Maharashtrian/gi, 'Traditional');

@@ -8,13 +8,13 @@ const FOOD_IMG = "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=80
 const menuData = {
   "Roti": [
     { id: "r1", name: "Plain Roti", price: 12, packPrice: 50, packQty: 5, image: "/images/Plain-Roti.jpeg", desc: "Soft, hot, and freshly made whole wheat roti. Perfect with any gravy or sabji." },
-    { id: "r2", name: "Ghee Roti", price: 15, packPrice: 65, packQty: 5, image: "/images/Ghee-Roti.jpeg", desc: "Fresh whole wheat roti brushed with pure, aromatic cow ghee for that rich, authentic taste." },
+    { id: "r2", name: "Ghee Roti", price: 15, packPrice: 65, packQty: 5, image: "/images/Ghee-Roti.jpeg", desc: "Fresh whole wheat roti brushed with pure, aromatic cow ghee for that rich, genuine taste." },
     { id: "r3", name: "Phulka Roti", price: 10, packPrice: 40, packQty: 5, image: "/images/Fulka-Roti.jpeg", desc: "Light, puffed up wheat phulkas roasted on an open flame. Melts in your mouth!" },
     { id: "r4", name: "Plain Paratha", price: 20, packPrice: 90, packQty: 5, image: "/images/Paratha.jpeg", desc: "Crispy, flaky, and golden-brown multi-layered paratha. A hearty companion to any meal." },
     { id: "r5", name: "Multigrain Roti", price: 25, packPrice: 115, packQty: 5, image: "/images/Multigrain-Roti.jpeg", desc: "Healthy and nutritious roti made from a special blend of wholesome grains." },
   ],
   "Bhakari": [
-    { id: "b1", name: "Jowar Bhakari", price: 25, packPrice: 115, packQty: 5, image: "/images/Jowar-Bhakari.png", desc: "Authentic, gluten-free flatbread made from premium sorghum flour. Best enjoyed hot!" },
+    { id: "b1", name: "Jowar Bhakari", price: 25, packPrice: 115, packQty: 5, image: "/images/Jowar-Bhakari.png", desc: "Genuine, gluten-free flatbread made from premium sorghum flour. Best enjoyed hot!" },
     { id: "b2", name: "Ragi Bhakari", price: 25, packPrice: 115, packQty: 5, image: "/images/Ragi-Bhakari.png", desc: "Extremely healthy, calcium-rich finger millet flatbread. Earthy flavors in every bite." },
     { id: "b3", name: "Rice Bhakari", price: 20, packPrice: 90, packQty: 5, image: "/images/Rice-Bhakari.png", desc: "Soft, white, and delicate flatbread made from premium rice flour. A Konkani specialty." },
     { id: "b4", name: "Bajra Bhakari", price: 25, packPrice: 115, packQty: 5, image: "/images/Bajra-Bhakari.png", desc: "Winter-favorite pearl millet flatbread, rich in iron and packed with traditional flavors." },
