@@ -17,9 +17,7 @@ export const protect = asyncHandler(async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
   
-  try {
-    fs.appendFileSync(path.join(process.cwd(), 'auth-debug.log'), `URL: ${req.url}, Token: ${token}\n`);
-  } catch(e){}
+
 
   if (!token) {
     res.status(401);
@@ -47,9 +45,7 @@ export const protect = asyncHandler(async (req, res, next) => {
 
     next();
   } catch (error) {
-    try {
-      fs.appendFileSync(path.join(process.cwd(), 'auth-debug.log'), `JWT Error: ${error.message}\n`);
-    } catch(e){}
+
     res.status(401);
     throw new Error(`Auth Error: ${error.message}`);
   }
