@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Rate Limiter Middleware
+// Global API Rate Limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
@@ -48,8 +48,30 @@ const apiLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
+// Strict Auth Rate Limiter
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per `window`
+  message: { message: 'Too many login attempts from this IP, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Apply rate limiter to all API routes
 app.use('/api/', apiLimiter);
+
+// Apply strict limiter to sensitive auth routes
+const authRoutes = [
+  '/api/v1/users/login',
+  '/api/v1/users/signup',
+  '/api/v1/users/verify-otp',
+  '/api/v1/users/forgot-password',
+  '/api/v1/admin/login',
+  '/api/v1/admin/forgot-password',
+  '/api/v1/delivery-boy/login',
+  '/api/v1/cms/login'
+];
+app.use(authRoutes, authLimiter);
 
 // Serve static files from the public directory
 app.use(express.static(path.join(process.cwd(), 'public')));
