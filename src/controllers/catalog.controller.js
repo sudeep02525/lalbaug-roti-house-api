@@ -21,6 +21,14 @@ export const getMenu = asyncHandler(async (req, res) => {
   for (const category of categories) {
     const categoryProducts = products.filter(p => p.categoryId.toString() === category._id.toString());
     
+    // Sort products so that out-of-stock items appear at the bottom
+    categoryProducts.sort((a, b) => {
+      const aStock = a.inStock !== false; // true or undefined is inStock
+      const bStock = b.inStock !== false;
+      if (aStock === bStock) return 0;
+      return aStock ? -1 : 1;
+    });
+    
     menuData[category.name] = categoryProducts.map(product => {
       const productVariants = variants.filter(v => v.productId.toString() === product._id.toString());
       
@@ -39,7 +47,8 @@ export const getMenu = asyncHandler(async (req, res) => {
         packVariantId: packVariant ? packVariant._id.toString() : null,
         addons: product.addons,
         isBestseller: product.isBestseller,
-        isDailyCombo: product.isDailyCombo
+        isDailyCombo: product.isDailyCombo,
+        inStock: product.inStock
       };
     });
   }
@@ -95,13 +104,13 @@ export const getProduct = asyncHandler(async (req, res) => {
 });
 
 export const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons } = req.body;
-  const product = await Product.create({ name, description, images, active, categoryId, isBestseller, isDailyCombo, addons });
+  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock } = req.body;
+  const product = await Product.create({ name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock });
   return new ApiResponse(res).success(product, 'Product created', 201);
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {
-  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons } = req.body;
+  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock } = req.body;
   
   const existingProduct = await Product.findById(req.params.id);
   if (!existingProduct) throw new Error('Product not found');
@@ -118,7 +127,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons }, { returnDocument: 'after', runValidators: true });
+  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock }, { returnDocument: 'after', runValidators: true });
   return new ApiResponse(res).success(product, 'Product updated');
 });
 

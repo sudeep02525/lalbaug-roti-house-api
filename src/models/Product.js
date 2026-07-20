@@ -24,7 +24,10 @@ const productSchema = new mongoose.Schema({
   images: [{
     type: String
   }],
-  active: { type: Boolean, default: true }, isBestseller: { type: Boolean, default: false }, isDailyCombo: { type: Boolean, default: false },
+  active: { type: Boolean, default: true }, 
+  isBestseller: { type: Boolean, default: false }, 
+  isDailyCombo: { type: Boolean, default: false },
+  inStock: { type: Boolean, default: true },
   addons: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Addon'

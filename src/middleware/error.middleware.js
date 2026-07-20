@@ -12,4 +12,9 @@ export const errorHandler = (err, req, res, next) => {
     message: err.message,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
+  try {
+    import('fs').then(fs => {
+      fs.appendFileSync('C:/Lalbaugrotihouse/api_error.log', new Date().toISOString() + ': ' + err.message + '\n' + err.stack + '\n\n');
+    });
+  } catch(e) {}
 };

@@ -14,7 +14,8 @@ const specialItemSchema = new mongoose.Schema({
   packSize: { type: Number },
   image: { type: String },
   description: { type: String },
-  isVeg: { type: Boolean, default: true }
+  isVeg: { type: Boolean, default: true },
+  inStock: { type: Boolean, default: true }
 }, { _id: false });
 
 const settingsSchema = new mongoose.Schema({

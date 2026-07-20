@@ -39,14 +39,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Global API Rate Limiter
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  message: { message: 'Too many requests from this IP, please try again after 15 minutes.' },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
+
 
 // Strict Auth Rate Limiter
 const authLimiter = rateLimit({
@@ -57,10 +50,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Apply rate limiter to all API routes
-app.use('/api/', apiLimiter);
-
-// Apply strict limiter to sensitive auth routes
 const authRoutes = [
   '/api/v1/users/login',
   '/api/v1/users/signup',

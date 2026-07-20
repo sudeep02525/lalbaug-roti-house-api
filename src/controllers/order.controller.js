@@ -61,6 +61,11 @@ export const createOrder = asyncHandler(async (req, res) => {
     const product = await Product.findById(item.productId);
     if (!product) throw new Error(`Product ${item.productId} not found`);
 
+    if (product.inStock === false) {
+      res.status(400);
+      throw new Error(`Sorry, ${product.name} is currently out of stock.`);
+    }
+
     let variant;
     if (!item.variantId || item.variantId === 'base' || item.variantId === 'pack') {
       const minQty = item.variantId === 'pack' ? 5 : 1;
