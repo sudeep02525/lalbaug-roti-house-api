@@ -133,7 +133,6 @@ export const getProduct = asyncHandler(async (req, res) => {
         return new ApiResponse(res).success(mockProduct);
       }
     }
-  }
 
   // Handle standard MongoDB ObjectIds
   if (!id.match(/^[0-9a-fA-F]{24}$/)) {
