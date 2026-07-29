@@ -100,10 +100,21 @@ export const getProduct = asyncHandler(async (req, res) => {
   // Intercept Mumbai Special items (e.g., m1, m5)
   if (id && id.startsWith('m') && id.length <= 3) {
     const settings = await Settings.findOne();
-    if (settings && settings.mumbaiSpecials) {
-      const special = settings.mumbaiSpecials.find(s => s.id === id);
-      if (special) {
-        const mockProduct = {
+    const defaultMumbaiSpecials = [
+      { id: 'm1', name: 'Genuine Puranpoli', price: 80, image: '/images/puranpoli.png', description: 'Sweet flatbread stuffed with lentil and jaggery', isVeg: true },
+      { id: 'm2', name: 'Ukadiche Modak', packPrice: 120, packSize: 4, image: '/images/modak.png', description: 'Steamed sweet dumplings', isVeg: true },
+      { id: 'm3', name: 'Mumbai Pav Bhaji', price: 150, image: '/images/pavbhaji.png', description: 'Spicy mashed vegetable curry with buttery buns', isVeg: true },
+      { id: 'm4', name: 'Konkani Ghavane', price: 60, image: '/images/ghavane.png', description: 'Soft rice flour pancakes', isVeg: true },
+      { id: 'm5', name: 'Crispy Bhajni Vade', packPrice: 90, packSize: 5, image: '/images/vade.png', description: 'Traditional multi-grain fritters', isVeg: true }
+    ];
+    
+    const specialsList = (settings && settings.mumbaiSpecials && settings.mumbaiSpecials.length > 0) 
+      ? settings.mumbaiSpecials 
+      : defaultMumbaiSpecials;
+      
+    const special = specialsList.find(s => s.id === id);
+    if (special) {
+      const mockProduct = {
           _id: special.id,
           id: special.id,
           name: special.name,
