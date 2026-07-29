@@ -2,3 +2,8 @@ node_modules/
 .env
 .DS_Store
 logs/
+
+# AI Agent files
+.agents/
+AGENTS.md
+

@@ -21,6 +21,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     maxlength: 1000
   },
+  details: {
+    type: String,
+    maxlength: 5000
+  },
   images: [{
     type: String
   }],
@@ -31,7 +35,18 @@ const productSchema = new mongoose.Schema({
   addons: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Addon'
-  }]
+  }],
+  badges: [{
+    type: String
+  }],
+  rating: {
+    type: Number,
+    default: 0
+  },
+  numReviews: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 productSchema.pre('validate', function() {

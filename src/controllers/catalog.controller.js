@@ -2,6 +2,7 @@ import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 import Variant from '../models/Variant.js';
 import Addon from '../models/Addon.js';
+import Settings from '../models/Settings.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
 import fs from 'fs';
@@ -94,7 +95,41 @@ export const getProducts = asyncHandler(async (req, res) => {
 });
 
 export const getProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id).populate('categoryId', 'name').populate('addons');
+  const { id } = req.params;
+
+  // Intercept Mumbai Special items (e.g., m1, m5)
+  if (id && id.startsWith('m') && id.length <= 3) {
+    const settings = await Settings.findOne();
+    if (settings && settings.mumbaiSpecials) {
+      const special = settings.mumbaiSpecials.find(s => s.id === id);
+      if (special) {
+        const mockProduct = {
+          _id: special.id,
+          id: special.id,
+          name: special.name,
+          description: special.description,
+          images: [special.image],
+          isVeg: special.isVeg,
+          active: true,
+          categoryId: { name: 'Mumbai Specials' },
+          addons: [],
+          badges: ["100% Pure Veg", "Served Fresh", "Traditional Recipe", "Bestseller"],
+          variants: [
+            special.price ? { _id: special.id + '_v', price: special.price, minQuantity: 1, active: true } : null,
+            special.packPrice ? { _id: special.id + '_vp', price: special.packPrice, minQuantity: special.packSize || special.packQty || 1, active: true } : null
+          ].filter(Boolean)
+        };
+        return new ApiResponse(res).success(mockProduct);
+      }
+    }
+  }
+
+  // Handle standard MongoDB ObjectIds
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    throw new Error('Product not found');
+  }
+
+  const product = await Product.findById(id).populate('categoryId', 'name').populate('addons');
   if (!product) throw new Error('Product not found');
   
   // Get variants for this product
@@ -104,13 +139,13 @@ export const getProduct = asyncHandler(async (req, res) => {
 });
 
 export const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock } = req.body;
-  const product = await Product.create({ name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock });
+  const { name, description, details, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock } = req.body;
+  const product = await Product.create({ name, description, details, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock });
   return new ApiResponse(res).success(product, 'Product created', 201);
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {
-  const { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock } = req.body;
+  const { name, description, details, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock } = req.body;
   
   const existingProduct = await Product.findById(req.params.id);
   if (!existingProduct) throw new Error('Product not found');
@@ -127,7 +162,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock }, { returnDocument: 'after', runValidators: true });
+  const product = await Product.findByIdAndUpdate(req.params.id, { name, description, details, images, active, categoryId, isBestseller, isDailyCombo, addons, inStock }, { returnDocument: 'after', runValidators: true });
   return new ApiResponse(res).success(product, 'Product updated');
 });
 
